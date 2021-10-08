@@ -1,19 +1,19 @@
 [![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)
 
-![GitHub forks](https://img.shields.io/github/forks/newrelic-experimental/newrelic-experimental-FIT-template?style=social)
-![GitHub stars](https://img.shields.io/github/stars/newrelic-experimental/newrelic-experimental-FIT-template?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/newrelic-experimental/newrelic-experimental-FIT-template?style=social)
+![GitHub forks](https://img.shields.io/github/forks/newrelic-experimental/nri-cisco-rtmt?style=social)
+![GitHub stars](https://img.shields.io/github/stars/newrelic-experimental/nri-cisco-rtmt?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/newrelic-experimental/nri-cisco-rtmt?style=social)
 
-![GitHub all releases](https://img.shields.io/github/downloads/newrelic-experimental/newrelic-experimental-FIT-template/total)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/newrelic-experimental/newrelic-experimental-FIT-template)
-![GitHub last commit](https://img.shields.io/github/last-commit/newrelic-experimental/newrelic-experimental-FIT-template)
-![GitHub Release Date](https://img.shields.io/github/release-date/newrelic-experimental/newrelic-experimental-FIT-template)
+![GitHub all releases](https://img.shields.io/github/downloads/newrelic-experimental/nri-cisco-rtmt/total)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/newrelic-experimental/nri-cisco-rtmt)
+![GitHub last commit](https://img.shields.io/github/last-commit/newrelic-experimental/nri-cisco-rtmt)
+![GitHub Release Date](https://img.shields.io/github/release-date/newrelic-experimental/nri-cisco-rtmt)
 
 
-![GitHub issues](https://img.shields.io/github/issues/newrelic-experimental/newrelic-experimental-FIT-template)
-![GitHub issues closed](https://img.shields.io/github/issues-closed/newrelic-experimental/newrelic-experimental-FIT-template)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/newrelic-experimental/newrelic-experimental-FIT-template)
-![GitHub pull requests closed](https://img.shields.io/github/issues-pr-closed/newrelic-experimental/newrelic-experimental-FIT-template)
+![GitHub issues](https://img.shields.io/github/issues/newrelic-experimental/nri-cisco-rtmt)
+![GitHub issues closed](https://img.shields.io/github/issues-closed/newrelic-experimental/nri-cisco-rtmt)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/newrelic-experimental/nri-cisco-rtmt)
+![GitHub pull requests closed](https://img.shields.io/github/issues-pr-closed/newrelic-experimental/nri-cisco-rtmt)
 
 # [Project Name] [build badges go here when available]
 
