@@ -1,0 +1,11 @@
+[Unit]
+Description=Collection of metrics from Cisco RTMT and report to New Relic
+
+[Service]
+WorkingDirectory=/opt/newrelic/cisco-rtmt-collector
+ExecStart= /bin/bash /opt/newrelic/cisco-rtmt-collector/runRTMTCollect.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

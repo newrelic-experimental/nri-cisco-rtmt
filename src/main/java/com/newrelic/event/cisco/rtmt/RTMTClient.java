@@ -58,6 +58,10 @@ public class RTMTClient {
 	public void addHost(String host) {
 		hosts.add(host);
 	}
+	
+	public String getURL() {
+		return url;
+	}
 
 	public boolean removeHost(String host) {
 		return hosts.remove(host);
@@ -78,6 +82,46 @@ public class RTMTClient {
 		return reported;
 	}
 
+	protected ObjectInfoType[] getCounterInfos(String host) throws RemoteException {
+		RTMTHost h = new RTMTHost(host);
+
+		PerfmonServiceStub stub = Stubs.getStub(url);
+
+		PerfmonListCounterDocument inDoc = PerfmonListCounterDocument.Factory.newInstance();
+		PerfmonListCounter counters = PerfmonListCounter.Factory.newInstance();
+		counters.setHost(host);
+
+		inDoc.setPerfmonListCounter(counters );
+
+		PerfmonListCounterResponseDocument doc = stub.perfmonListCounter(inDoc);
+
+		PerfmonListCounterResponse response = doc.getPerfmonListCounterResponse();
+		ObjectInfoType[] counterObjects = response.getPerfmonListCounterReturnArray();
+
+//		for(ObjectInfoType counter : counterObjects) {
+//			HashSet<String> current =  new HashSet<String>();
+//			ObjectNameType name = counter.getName();
+//			String objName = name.getStringValue();
+//			ArrayOfCounterType counterArray = counter.getArrayOfCounter();
+//			CounterType[] itemArray = counterArray.getItemArray();
+//			ObjectName oName = new ObjectName(objName, counter.getMultiInstance());
+//			h.addObjectName(oName);
+//			for(CounterType counterItem : itemArray) {
+//				CounterNameType cName = counterItem.getName();
+//				String counterName = cName.getStringValue();
+//				if(counterName != null && !counterName.isEmpty()) {
+//					current.add(counterName);
+//				}
+//			}
+//			try {
+//				h.addCounters(oName, current);
+//			} catch (RTMTException e) {
+//				LOG.debug("Exception occurred", e);
+//			}
+//		}
+		return counterObjects;
+	}
+	
 	protected RTMTHost getCounters(String host) throws RemoteException {
 		LOG.debug("Getting list of counters for host: "+host);
 		RTMTHost h = new RTMTHost(host);
@@ -140,92 +184,120 @@ public class RTMTClient {
 		for(ObjectName objectName : host.getObjectNames()) {
 			String objName = objectName.getObjectName();
 
+			List<String> countersToSkip = new ArrayList<String>();
+			List<String> countersToInclude = new ArrayList<String>();
+			boolean multiInstance = objectName.isMultiInstance();
+
 			List<String> instancesToSkip = new ArrayList<String>();
 			List<String> instancesToInclude = new ArrayList<String>();
 
 			boolean ignore = false;
 
-			for(int i=0;i<filtersToApply.size() && !ignore; i++) {
+			for(int i=0;i<filtersToApply.size(); i++) {
 				Filter filter = filtersToApply.get(i);
+				boolean haveCounters = filter.counters != null && !filter.counters.isEmpty();
+				boolean haveInstances = multiInstance ? filter.instances != null && !filter.instances.isEmpty() : false;
+
 				if(filter.isExclude) {
 					// logic to exclude collection of certain counters
-					if(objectName.isMultiInstance()) {
-						if(filter.instances != null && !filter.instances.isEmpty()) {
-							// ignores are restricted to certain instances so collect instances to skip
-							if(filter.scope == FilterScope.GLOBAL) {
-								if(objName.equalsIgnoreCase(filter.objectName)) instancesToSkip.addAll(filter.instances);
-							} else if(filter.scope == FilterScope.RTMT_AGENT) {
-								RTMTAgentFilter f = (RTMTAgentFilter)filter;
-								if(f.agentName.equalsIgnoreCase(agentName) && objName.equalsIgnoreCase(filter.objectName)) instancesToSkip.addAll(filter.instances);
-							} else if(filter.scope == FilterScope.RTMT_HOST) {
-								RTMTHostFilter f = (RTMTHostFilter)filter;
-								if(f.hostName.equalsIgnoreCase(host.getHost()) && objName.equalsIgnoreCase(filter.objectName)) instancesToSkip.addAll(filter.instances);
+
+					if(objName.equalsIgnoreCase(filter.objectName)) {
+						if(filter.scope == FilterScope.GLOBAL) {
+							if(!haveCounters && !haveInstances) {
+								ignore = true;
+							} else if(haveCounters) {
+								countersToSkip.addAll(filter.counters);
+								if(haveInstances) {
+									instancesToSkip.addAll(filter.instances);
+								}
+							} else if(haveInstances) {
+								instancesToSkip.addAll(filter.instances);
+							}		
+						} else if(filter.scope == FilterScope.RTMT_AGENT) {		
+							RTMTAgentFilter f = (RTMTAgentFilter)filter;
+							if(f.agentName.equalsIgnoreCase(agentName)) {
+								if(!haveCounters && !haveInstances) {
+									ignore = true;
+								} else if(haveCounters) {
+									countersToSkip.addAll(filter.counters);
+									if(haveInstances) {
+										instancesToSkip.addAll(filter.instances);
+									}
+								} else if(haveInstances) {
+									instancesToSkip.addAll(filter.instances);
+								}							
 							}
-						} else {
-							// excludes are on all instances
-							if(filter.scope == FilterScope.GLOBAL) {
-								if(objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-							} else if(filter.scope == FilterScope.RTMT_AGENT) {
-								RTMTAgentFilter f = (RTMTAgentFilter)filter;
-								if(f.agentName.equalsIgnoreCase(agentName) && objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-							} else if(filter.scope == FilterScope.RTMT_HOST) {
-								RTMTHostFilter f = (RTMTHostFilter)filter;
-								if(f.hostName.equalsIgnoreCase(host.getHost()) && objName.equalsIgnoreCase(filter.objectName)) ignore = true;
+						} else if(filter.scope == FilterScope.RTMT_HOST) {
+							RTMTHostFilter f = (RTMTHostFilter)filter;
+							if(f.hostName.equalsIgnoreCase(host.getHost())) {
+								if(!haveCounters && !haveInstances) {
+									ignore = true;
+								} else if(haveCounters) {
+									countersToSkip.addAll(filter.counters);
+									if(haveInstances) {
+										instancesToSkip.addAll(filter.instances);
+									}
+								} else if(haveInstances) {
+									instancesToSkip.addAll(filter.instances);
+								}							
+							}
+						}
+
+					}
+
+				} else {
+					// logic to only collect certain counters
+					
+					if(!objName.equalsIgnoreCase(filter.objectName)) {
+						if(filter.scope == FilterScope.GLOBAL) {
+							ignore = true;
+						} else if(filter.scope == FilterScope.RTMT_AGENT) {		
+							RTMTAgentFilter f = (RTMTAgentFilter)filter;
+							if(f.agentName.equalsIgnoreCase(agentName)) {
+								ignore = true;
+							}
+						} else if(filter.scope == FilterScope.RTMT_HOST) {
+							RTMTHostFilter f = (RTMTHostFilter)filter;
+							if(f.hostName.equalsIgnoreCase(host.getHost())) {
+								ignore = true;
 							}
 						}
 					} else {
-						// no multiple instances
 						if(filter.scope == FilterScope.GLOBAL) {
-							if(objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-						} else if(filter.scope == FilterScope.RTMT_AGENT) {
+							if(haveCounters) {
+								countersToInclude.addAll(filter.counters);
+							}
+							if(haveInstances) {
+								instancesToInclude.addAll(filter.instances);
+							}
+						} else if(filter.scope == FilterScope.RTMT_AGENT) {		
 							RTMTAgentFilter f = (RTMTAgentFilter)filter;
-							if(f.agentName.equalsIgnoreCase(agentName) && objName.equalsIgnoreCase(filter.objectName)) ignore = true;
+							if(f.agentName.equalsIgnoreCase(agentName)) {
+								if(haveCounters) {
+									countersToInclude.addAll(filter.counters);
+								}
+								if(haveInstances) {
+									instancesToInclude.addAll(filter.instances);
+								}								
+							}
 						} else if(filter.scope == FilterScope.RTMT_HOST) {
 							RTMTHostFilter f = (RTMTHostFilter)filter;
-							if(f.hostName.equalsIgnoreCase(host.getHost()) && objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-						}
-					}
-				} else {
-					// logic to only collect certain counters
-					if(objectName.isMultiInstance()) {
-						if(filter.instances != null && !filter.instances.isEmpty()) {
-							// counters are restricted to certain instances so collect instances to include
-							if(filter.scope == FilterScope.GLOBAL) {
-								if(objName.equalsIgnoreCase(filter.objectName)) instancesToInclude.addAll(filter.instances);
-							} else if(filter.scope == FilterScope.RTMT_AGENT) {
-								RTMTAgentFilter f = (RTMTAgentFilter)filter;
-								if(f.agentName.equalsIgnoreCase(agentName) && objName.equalsIgnoreCase(filter.objectName)) instancesToInclude.addAll(filter.instances);
-							} else if(filter.scope == FilterScope.RTMT_HOST) {
-								RTMTHostFilter f = (RTMTHostFilter)filter;
-								if(f.hostName.equalsIgnoreCase(host.getHost()) && objName.equalsIgnoreCase(filter.objectName)) {instancesToInclude.addAll(filter.instances);
+							if(f.hostName.equalsIgnoreCase(host.getHost())) {
+								if(haveCounters) {
+									countersToInclude.addAll(filter.counters);
 								}
-							} else {
-								if(filter.scope == FilterScope.GLOBAL) {
-									if(!objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-								} else if(filter.scope == FilterScope.RTMT_AGENT) {
-									RTMTAgentFilter f = (RTMTAgentFilter)filter;
-									if(f.agentName.equalsIgnoreCase(agentName) && !objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-								} else if(filter.scope == FilterScope.RTMT_HOST) {
-									RTMTHostFilter f = (RTMTHostFilter)filter;
-									if(f.hostName.equalsIgnoreCase(host.getHost()) && !objName.equalsIgnoreCase(filter.objectName)) ignore = true;
+								if(haveInstances) {
+									instancesToInclude.addAll(filter.instances);
 								}
-							}
-						} else {
-							if(filter.scope == FilterScope.GLOBAL) {
-								if(!objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-							} else if(filter.scope == FilterScope.RTMT_AGENT) {
-								RTMTAgentFilter f = (RTMTAgentFilter)filter;
-								if(f.agentName.equalsIgnoreCase(agentName) && !objName.equalsIgnoreCase(filter.objectName)) ignore = true;
-							} else if(filter.scope == FilterScope.RTMT_HOST) {
-								RTMTHostFilter f = (RTMTHostFilter)filter;
-								if(f.hostName.equalsIgnoreCase(host.getHost()) && !objName.equalsIgnoreCase(filter.objectName)) ignore = true;
 							}
 						}
 					}
+					
+
 				}
 			}
-
-			if(ignore) {
+			
+			if(ignore && instancesToInclude.isEmpty() && instancesToSkip.isEmpty() && countersToInclude.isEmpty() && countersToSkip.isEmpty()) {
 				continue;
 			}
 
@@ -278,6 +350,7 @@ public class RTMTClient {
 				HashMap<String, List<Metric>> instanceMetrics = new HashMap<String, List<Metric>>();
 				for (Metric metric : metricsList) {
 					String metricName = metric.getName();
+					
 					int index = metricName.indexOf('(');
 					if(index > -1) {
 						int index2 = metricName.indexOf(')');
@@ -340,6 +413,12 @@ public class RTMTClient {
 						if(index > -1) {
 							metricName = metricName.substring(index+1);
 						}
+						if(!countersToInclude.isEmpty() && !countersToInclude.contains(metricName)) {
+							continue;
+						}
+						if(!countersToSkip.isEmpty() && countersToSkip.contains(metricName)) {
+							continue;
+						}
 						attributes.put(metricName, metric.getValue());
 					}
 					attributes.put("eventType", "RTMT");
@@ -373,6 +452,12 @@ public class RTMTClient {
 					int index = metricName.lastIndexOf('\\');
 					if(index > -1) {
 						metricName = metricName.substring(index+1);
+					}
+					if(!countersToInclude.isEmpty() && !countersToInclude.contains(metricName)) {
+						continue;
+					}
+					if(!countersToSkip.isEmpty() && countersToSkip.contains(metricName)) {
+						continue;
 					}
 					attributes.put(metricName, metric.getValue());
 				}

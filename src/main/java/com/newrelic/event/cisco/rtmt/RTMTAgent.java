@@ -63,4 +63,8 @@ public class RTMTAgent {
 	public void addSession(RTMTSession session) {
 		sessions.add(session);
 	}
+	
+	public String getURL() {
+		return client.getURL();
+	}
 }

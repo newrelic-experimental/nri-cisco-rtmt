@@ -46,6 +46,8 @@ task createPackage(type: Tar) {
 	from 'resources'
 	from 'build/distributions/cisco-rtmt-collector.jar'
 	
+	archiveName = "cisco-rtmt-collector.tgz"
+	
 	compression = Compression.GZIP
 }
 

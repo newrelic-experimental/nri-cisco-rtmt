@@ -18,6 +18,17 @@ public class GlobalFilter extends Filter {
 		} else {
 			sb.append("Type: Include, ");
 		}
+		if(counters == null || counters.isEmpty()) {
+			sb.append("Counters: None");
+		} else {
+			sb.append("Counters: ");
+			int i = 0;
+			for(String counter : counters) {
+				sb.append(counter);
+				if(i < counters.size()-1)
+					sb.append(',');
+			}
+		}
 		if(instances == null || instances.isEmpty()) {
 			sb.append("Instances: None");
 		} else {

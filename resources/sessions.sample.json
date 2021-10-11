@@ -1,0 +1,10 @@
+"sessions": [
+  {
+    "name": "unique name for session",
+    "counters": [
+      "counter name",
+      "counter name",
+      "counter name"
+    ]
+  }
+]

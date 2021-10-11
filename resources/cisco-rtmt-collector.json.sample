@@ -1,0 +1,13 @@
+{
+	"global": {
+		"account_id": "enter account number",
+		"license_key": "enter license key"
+	},
+	"agents": [
+		{
+			"name": "enter unique name for collector",
+			"url": "url of RTMT,  should be something like: https://ServerName:8443/perfmonservice2/services/PerfmonService",
+			"hosts": "enter comma separated list of hosts to query for",
+		}
+	]
+}

@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +15,20 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 
 import com.beust.jcommander.JCommander;
+import com.cisco.schemas.ast.soap.ArrayOfCounterType;
+import com.cisco.schemas.ast.soap.CounterNameType;
+import com.cisco.schemas.ast.soap.CounterType;
+import com.cisco.schemas.ast.soap.InstanceNameType;
+import com.cisco.schemas.ast.soap.InstanceType;
+import com.cisco.schemas.ast.soap.ObjectInfoType;
+import com.cisco.schemas.ast.soap.ObjectNameType;
+import com.cisco.schemas.ast.soap.PerfmonListInstanceDocument;
+import com.cisco.schemas.ast.soap.PerfmonListInstanceDocument.PerfmonListInstance;
+import com.cisco.schemas.ast.soap.PerfmonListInstanceResponseDocument;
+import com.cisco.schemas.ast.soap.PerfmonListInstanceResponseDocument.PerfmonListInstanceResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.newrelic.soap.cisco.PerfmonServiceStub;
 
 public class QueryCounters {
 	
@@ -122,20 +133,62 @@ public class QueryCounters {
 			RTMTAgentFactory factory = new RTMTAgentFactory();
 			RTMTAgent agent = factory.createAgent(agentProperties);
 			
+			PerfmonServiceStub stub = Stubs.getStub(agent.getURL());
+			
 			RTMTClient client = agent.getClient();
 			List<String> hosts = agent.getHosts();
 			
 			for(String host : hosts) {
-				RTMTHost rtmtHost = client.getCounters(host);
-				List<ObjectName> objectNames = rtmtHost.getObjectNames();
+				ObjectInfoType[] objects = client.getCounterInfos(host);
 				writer.println("Counters from host "+host);
-				for(ObjectName objectName : objectNames) {
-					writer.println("\tObject Name: "+objectName.getObjectName());
-					HashSet<String> counters = rtmtHost.getCounters(objectName.getObjectName());
-					for(String counter : counters) {
-						writer.println("\t\tCounter Name: "+counter);
+
+				for(ObjectInfoType objectType : objects) {
+					ObjectNameType name = objectType.getName();
+					String objName = name.getStringValue();
+					
+					writer.println("\tObject Name: "+objName);
+					boolean multiInstance = objectType.getMultiInstance();
+					if(multiInstance) {
+						PerfmonListInstanceDocument doc = PerfmonListInstanceDocument.Factory.newInstance();
+						PerfmonListInstance listInstance = doc.addNewPerfmonListInstance();
+						listInstance.setHost(host);
+						ObjectNameType objNameType = listInstance.addNewObject();
+						objNameType.setStringValue(objName);
+						listInstance.setObject(objNameType );
+						PerfmonListInstanceResponseDocument responseDoc = stub.perfmonListInstance(doc);
+
+						PerfmonListInstanceResponse response = responseDoc.getPerfmonListInstanceResponse();
+						InstanceType[] instanceTypes = response.getPerfmonListInstanceReturnArray();
+
+						if (instanceTypes != null && instanceTypes.length > 0) {
+							writer.println("\t\tInstances");
+							for(InstanceType iType : instanceTypes) {
+								InstanceNameType iName = iType.getName();
+								writer.println("\t\t\t"+iName.getStringValue());
+							}
+						}
+					}
+					
+					ArrayOfCounterType counterArray = objectType.getArrayOfCounter();
+					if(counterArray != null) {
+						writer.println("\t\tCounters");
+						CounterType[] counterItems = counterArray.getItemArray();
+						for(CounterType cType : counterItems) {
+							CounterNameType cName = cType.getName();
+							writer.println("\t\t\t"+cName.getStringValue());
+						}
 					}
 				}
+//				RTMTHost rtmtHost = client.getCounters(host);
+//				List<ObjectName> objectNames = rtmtHost.getObjectNames();
+//				writer.println("Counters from host "+host);
+//				for(ObjectName objectName : objectNames) {
+//					writer.println("\tObject Name: "+objectName.getObjectName());
+//					HashSet<String> counters = rtmtHost.getCounters(objectName.getObjectName());
+//					for(String counter : counters) {
+//						writer.println("\t\tCounter Name: "+counter);
+//					}
+//				}
 			}
 			
 			writer.close();

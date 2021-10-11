@@ -12,7 +12,8 @@ public abstract class Filter {
 	protected String objectName = null;
 	
 	protected List<String> instances = new ArrayList<String>();
-
+	
+	protected List<String> counters = new ArrayList<String>();
 	
 	protected Filter(String oName) {
 		objectName = oName;

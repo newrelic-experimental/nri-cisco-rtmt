@@ -104,6 +104,7 @@ public class Main {
 				}
 			}
 			LogManager.getLogger("com.newrelic.event.cisco.rtmt").setLevel(level);
+			LogManager.getLogger("org.apache").setLevel(Level.WARN);
 			
 			useEUEndpoint = (Boolean)globalProperties.get("useEU");
 			if(useEUEndpoint == null) useEUEndpoint = false;
@@ -143,7 +144,13 @@ public class Main {
 				}
 				String objectName = (String)map.get("objectName");
 				
+				if(objectName == null || objectName.isEmpty()) {
+					LOG.info("Object name must be defined for filter: "+obj);
+					continue;
+				}
+				
 				ArrayList<String> instances = (ArrayList<String>)map.get("instances");
+				ArrayList<String> counters = (ArrayList<String>)map.get("counters");
 				
 				if(scope != null && type != null && objectName != null) {
 					if(scope.equalsIgnoreCase("global")) {
@@ -151,6 +158,7 @@ public class Main {
 						gFilter.isExclude = isExclude;
 						gFilter.objectName = objectName;
 						gFilter.instances = instances;
+						gFilter.counters = counters;
 						Filters.addGlobalFilter(gFilter);
 					} else if(scope.equalsIgnoreCase("agent")) {
 						String agentName = (String) map.get("agentName");
@@ -160,6 +168,7 @@ public class Main {
 							aFilter.isExclude = isExclude;
 							aFilter.objectName = objectName;
 							aFilter.instances = instances;
+							aFilter.counters = counters;
 							Filters.addRTMTAgentFilter(agentName, aFilter);
 						} else {
 							LOG.error("Agent Filter declared but no agent name was given");
@@ -168,11 +177,12 @@ public class Main {
 						String hostName = (String) map.get("hostName");
 						
 						if (hostName != null && !hostName.isEmpty()) {
-							RTMTHostFilter aFilter = new RTMTHostFilter(hostName, objectName);
-							aFilter.isExclude = isExclude;
-							aFilter.objectName = objectName;
-							aFilter.instances = instances;
-							Filters.addHostFilter(hostName, aFilter);
+							RTMTHostFilter hFilter = new RTMTHostFilter(hostName, objectName);
+							hFilter.isExclude = isExclude;
+							hFilter.objectName = objectName;
+							hFilter.instances = instances;
+							hFilter.counters = counters;
+							Filters.addHostFilter(hostName, hFilter);
 						} else {
 							LOG.error("Host Filter declared but no host name was given");
 						}
