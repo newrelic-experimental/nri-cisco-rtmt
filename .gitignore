@@ -1,0 +1,9 @@
+build
+bin
+*.class
+.classpath
+.project
+logs
+.settings
+.git
+.github
