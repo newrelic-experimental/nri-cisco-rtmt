@@ -23,10 +23,6 @@ configurations {
 
 dependencies {
 	compile group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '2.6.0'
-// 	compile 'org.apache.axis2:axis2-kernel:1.7.9'
-//	compile group: 'org.apache.axis2', name: 'axis2-transport-http', version: '1.7.9'
-//	compile group: 'org.apache.axis2', name: 'axis2-transport-local', version: '1.7.9'
-//	compile 'org.apache.axis2:axis2-adb:1.7.9'
 	
  	
     // This dependency is used by the application.
@@ -45,6 +41,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+task createPackage(type: Tar) {
+	from 'scripts'
+	from 'resources'
+	from 'build/distributions/cisco-rtmt-collector.jar'
+	
+	compression = Compression.GZIP
+}
+
+
 task allInOneJar(type: Jar) {
 	manifest {
 			attributes 'Implementation-Title': project.group + '.' + project.name,
@@ -60,3 +65,4 @@ task allInOneJar(type: Jar) {
 
 jar.enabled=false
 assemble.dependsOn "allInOneJar"
+createPackage.dependsOn allInOneJar
