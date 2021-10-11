@@ -66,44 +66,62 @@ The three types are:
 2.  Agent - applies to all hosts associated with the agent's URL.    
 3.  Host - applies only to the host with that name.   
    
+A filter must include an object name.
+Optionally it can include counter names.
+Optionally it can include instance names for multiple instance object names.
+
 The filter can either be include or exclude. The default is exclude.    
 ### Exclude
 Collect all RTMT counters except the configured counters.   
 ### Include
-Only collect the confgured RTMT counters.    
+Only collect the confgured RTMT counters.
 
-## Getting Started
+### Configuration
+To add filters to the configuration, add a "filters" array to the configuration json.    
+Each filter element has the following structure:    
+"scope" - required and must be one of these case insenstive strings: "global", "agent" or "host"
+"type" - optional.  value of "include" or "exclude".   default is exclude if not present.
+"objectName" - required and is the object name on which to filter
+"counters" - optional and is a JSON array of counter names on which to filter
+"instances" - optional and is JSON array of instance names on which to filter.  Ignored if object name is not multiple instance
 
->[Simple steps to start working with the software similar to a "Hello World"]
+#### Sample
+![image](https://user-images.githubusercontent.com/8822859/136851593-498fca8c-8525-4410-b01b-8bb4b9ea9b7b.png)
 
-## Usage
-
->[**Optional** - Include more thorough instructions on how to use the software. This section might not be needed if the Getting Started section is enough. Remove this section if it's not needed.]
+## Sample Configuration
+![image](https://user-images.githubusercontent.com/8822859/136852238-d439af45-cbb9-4c66-9c16-8fdd06888783.png)
 
 ## Building
 
->[**Optional** - Include this section if users will need to follow specific instructions to build the software from source. Be sure to include any third party build dependencies that need to be installed separately. Remove this section if it's not needed.]
+To build the distribution tar file run the command:    
+./gradlew createPackage  
+    
+Result is built to build/distributions/
 
-## Testing
+To build the jar file used by the collector:    
+./gradlew allInOneJar  
+    
+Result is built to build/distributions/
 
->[**Optional** - Include instructions on how to run tests if we include tests with the codebase. Remove this section if it's not needed.]
+## Troubleshooting
+The collector produces a log named cisco_rtmt.log and is created in the directory /opt/newrelic/cisco-rtmt-collector/logs
+
+The default logging level is info for the log.  To change the level, add "logging_level" to the global properties in cisco-rtmt-collector.json.
+
+Logging levels are: fatal, error, warn, info, debug, all.    
+
+### Example
+![image](https://user-images.githubusercontent.com/8822859/136854713-d169be63-8534-40c4-bbc6-c686f1485956.png)
+
 
 ## Support
 
 New Relic has open-sourced this project. This project is provided AS-IS WITHOUT WARRANTY OR DEDICATED SUPPORT. Issues and contributions should be reported to the project here on GitHub.
-
->[Choose 1 of the 2 options below for Support details, and remove the other one.]
-
->[Option 1 - no specific thread in Community]
->We encourage you to bring your experiences and questions to the [Explorers Hub](https://discuss.newrelic.com) where our community members collaborate on solutions and new ideas.
-
->[Option 2 - thread in Community]
->New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub.
->You can find this project's topic/threads here: [URL for Community thread]
+We encourage you to bring your experiences and questions to the [Explorers Hub](https://discuss.newrelic.com) where our community members collaborate on solutions and new ideas.
 
 ## Contributing
 
-We encourage your contributions to improve [Project Name]! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project. If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company, please drop us an email at opensource@newrelic.com.
+We encourage your contributions to improve Cisco RTMT Collector! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project. If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company, please drop us an email at opensource@newrelic.com.
 
 **A note about vulnerabilities**
 
@@ -113,6 +131,5 @@ If you believe you have found a security vulnerability in this project or any of
 
 ## License
 
-[Project Name] is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
+Cisco RTMT Collector is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
 
->[If applicable: [Project Name] also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the third-party notices document.]
