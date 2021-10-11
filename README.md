@@ -91,6 +91,20 @@ Each filter element has the following structure:
 ## Sample Configuration
 ![image](https://user-images.githubusercontent.com/8822859/136852238-d439af45-cbb9-4c66-9c16-8fdd06888783.png)
 
+## Starting and Stopping
+The service can be started and stopped by running the appropriate command as root
+### Start
+systemctl start cisco-rtmt-collector
+### Stop
+systemctl stop cisco-rtmt-collector
+## Finding List of Counters
+You can generate a list of available counters by:
+1. Navigate to /opt/newrelic/cisco-rtmt-collector
+2. Run the following command as root:
+java -cp cisco-rtmt-collector.jar com.newrelic.event.cisco.rtmt.QueryCounters -config_file cisco-rtmt-collector.json
+   
+3. This should generate a file named RTMT-Counters.txt
+   
 ## Building
 
 To build the distribution tar file run the command:    
@@ -102,6 +116,13 @@ To build the jar file used by the collector:
 ./gradlew allInOneJar  
     
 Result is built to build/distributions/
+
+## Uninstall
+To uninstall the collector:
+1. Navigate to /opt/newrelic/cisco-rtmt-collector
+2. Run the following command as root:
+    
+./uninstall.sh
 
 ## Troubleshooting
 The collector produces a log named cisco_rtmt.log and is created in the directory /opt/newrelic/cisco-rtmt-collector/logs
