@@ -15,13 +15,62 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/newrelic-experimental/nri-cisco-rtmt)
 ![GitHub pull requests closed](https://img.shields.io/github/issues-pr-closed/newrelic-experimental/nri-cisco-rtmt)
 
-# [Project Name] [build badges go here when available]
+# Cisco RTMT Collector
 
->[Brief description - what is the project and value does it provide? How often should users expect to get releases? How is versioning set up? Where does this project want to go?]
-
+## Requirements
+In order to run the collector, Java 8 or later must be installed.   
+   
 ## Installation
-
-> [Include a step-by-step procedure on how to get your code installed. Be sure to include any third-party dependencies that need to be installed separately]
+   
+1. Download the release archive and extract it to the disk.  We will refer to the directory where it is extracted as the installation directory
+2. In the installation directory, copy the file cisco-rtmt-collector.json.sample to cisco-rtmt-collector.json
+3. Edit cisco-rtmt-collector.json according to the Configuration section
+4. Save cisco-rtmt-collector.json
+5. Run the installation script as root
+ ./install.sh
+     
+## Configuration
+You will need the account number and the license key for New Relic account that the collector will report to.
+1. Edit cisco-rtmt-collector.json.  
+2. Edit the global section.  
+   a. Replace “enter account number” with your New Relic account number.  
+   b. Replace “enter account number” with your New Relic account number.  
+   c. (If reporting to EU New Relic datacenter).  Add attribute “useEU” with a value of true.   
+  ![image](https://user-images.githubusercontent.com/8822859/136819149-c56225a2-f292-4801-b25b-635975984097.png).  
+   d. (Optional).  The collector will collect metrics every minute.  To query less often add a “frequency” element and give it an integer value that is the number of minutes between queries and reporting.  If not present then the frequency will be set to 1.   
+3. Collect the RTMT urls that you want to query along with the RTMT hosts associated with each URL.    
+4. You will need to create an “agent” for each RTMT url that you want to query.  Each agent is a JSON entry in the “agents” array.  
+   a.  Enter a unique name for the agent.  This can be used to differentiate which agent collected the RTMT event.   
+   b.  Enter the url for RTMT.   
+   c.  Enter a comma separated list of host names that you want query from this url in the “hosts” entry.   
+   d. If a username and password are required to access the RTMT counters then:   
+        i.  Add a “security” JSON stanza to the agent.   
+        ii.  Add “username” and “password” attributes to the JSON object with values that match those necessary.    
+![image](https://user-images.githubusercontent.com/8822859/136821260-77008a59-aee4-48bb-9520-42e10f0b69f7.png)
+   
+5. (Optional).  If you plan to query for session counters then populate the sessions stanza.  The collector will open a session, add the configured counters and query for them each period.  To configure them add a “sessions” stanza.  The file sessions.json.sample contains the stanza.  Note that multiple sessions can be used. Copy the contents to the agent and configure as follows:   
+   a.  Replace “unique name for session” with a unique for the set of session counters being collected.   
+   b.  Populate “counters” by adding a counter name to the array. Note that these counter names include ‘\’ and the JSON parser sees it as an escape character so if the name includes a \ denote it as \\.  Note that the counter name should follow the guidelines found here: [Add Session Counter](https://developer.cisco.com/docs/sxml/?_gl=1*g6f7o3*_ga*MTAzNDQzODc3Mi4xNjI2OTcxODU1*_gid*MTU3ODQ3NTQ4OS4xNjMwNzAyNzMy*_fplc*N0lMRjVNbEdtazJ1JTJGeDZ3elA4OVN3YUxtamdXeTRLelY5WHhhdTFDM3hqQzhxZ3FqN3pVVSUyQm1lNDVaTVpjckR0eEVId1VHU2JPNDZ1anYzT3g2Q3MzVTZOaVpNa0NlJTJCVjZqMkJZSzhvJTJGVDc5T3dRYjUzODdFUTJjeEtTQ0ElM0QlM0Q.#!perfmon-api-reference/perfmonaddcounter).  
+  
+   c.  Separate each name with a comma except the last one.  
+   d.  Repeat if you want to set up additional sessions and counters.
+6.  Repeat if more agents are needed.
+7.  (Optional).  Congfigure Filters as needed.  See the next section.   
+8.  Save cisco-rtmt-collector.json.   
+      
+## Filters
+   
+Three types of filters can be configured.  Each filter depends on the scope of the filter.   
+The three types are:    
+1.  Global - applies to all urls and hosts
+2.  Agent - applies to all hosts associated with the agent's URL.    
+3.  Host - applies only to the host with that name.   
+   
+The filter can either be include or exclude. The default is exclude.    
+### Exclude
+Collect all RTMT counters except the configured counters.   
+### Include
+Only collect the confgured RTMT counters.    
 
 ## Getting Started
 
